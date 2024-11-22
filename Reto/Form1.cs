@@ -15,6 +15,7 @@ namespace Reto
         private void EntrarBtn_Click(object sender, EventArgs e)
         {
             string userType = string.Empty;
+            int userId = 0;
             string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=|DataDirectory|\RETODESIN.accdb;Persist Security Info=False;";
 
             using (OleDbConnection connection = new OleDbConnection(connectionString))
@@ -22,21 +23,24 @@ namespace Reto
                 try
                 {
                     connection.Open();
-                    string query = "SELECT Tipo FROM usuarios WHERE NombreUsuario = ? AND Contraseña = ?";
+                    string query = "SELECT Id, Tipo FROM usuarios WHERE NombreUsuario = ? AND Contraseña = ?";
                     using (OleDbCommand command = new OleDbCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@NombreUsuario", textBoxUsuario.Text);
                         command.Parameters.AddWithValue("@Contraseña", textBoxContraseña.Text);
 
-                        object result = command.ExecuteScalar();
-                        if (result != null)
+                        using (OleDbDataReader reader = command.ExecuteReader())
                         {
-                            userType = result.ToString();
-                        }
-                        else
-                        {
-                            MessageBox.Show("Usuario o contraseña incorrectos.");
-                            return;
+                            if (reader.Read())
+                            {
+                                userId = reader.GetInt32(0); // Obtener el Id del usuario
+                                userType = reader.GetString(1); // Obtener el Tipo del usuario
+                            }
+                            else
+                            {
+                                MessageBox.Show("Usuario o contraseña incorrectos.");
+                                return;
+                            }
                         }
                     }
                 }
@@ -47,9 +51,9 @@ namespace Reto
                 }
             }
 
-            Form2 form2 = new Form2(userType);
+            Form2 form2 = new Form2(userId, userType);
             form2.Show();
-           this.Visible = false;
+            this.Visible = false;
         }
 
         private void pictureBox1_Click(object sender, EventArgs e)

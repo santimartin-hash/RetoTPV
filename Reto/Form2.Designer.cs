@@ -40,7 +40,18 @@
             this.label1 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panelReservas = new System.Windows.Forms.Panel();
+            this.reservarBtn = new System.Windows.Forms.Button();
+            this.mesa5 = new System.Windows.Forms.Button();
+            this.mesa4 = new System.Windows.Forms.Button();
+            this.mesa3 = new System.Windows.Forms.Button();
+            this.mesa2 = new System.Windows.Forms.Button();
+            this.mesa1 = new System.Windows.Forms.Button();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.dateTimePicker = new System.Windows.Forms.DateTimePicker();
+            this.pictureBoxReserva = new System.Windows.Forms.PictureBox();
             this.panelCaja = new System.Windows.Forms.Panel();
+            this.label8 = new System.Windows.Forms.Label();
+            this.comboBoxCategoriasDisponibles = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
             this.TotalTextBox = new System.Windows.Forms.TextBox();
             this.imprimirBtn = new System.Windows.Forms.Button();
@@ -55,6 +66,7 @@
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.imageList2 = new System.Windows.Forms.ImageList(this.components);
             this.panelAlmacen = new System.Windows.Forms.Panel();
+            this.comboBoxCategoria = new System.Windows.Forms.ComboBox();
             this.textBoxIdProducto = new System.Windows.Forms.TextBox();
             this.dataGridViewAlmacen = new System.Windows.Forms.DataGridView();
             this.eliminarProductoBtn = new System.Windows.Forms.Button();
@@ -68,15 +80,29 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.textBoxImagenProducto = new System.Windows.Forms.TextBox();
-            this.textBoxCategoriaProducto = new System.Windows.Forms.TextBox();
             this.textBoxDescripcionProducto = new System.Windows.Forms.TextBox();
             this.textBoxNombreProducto = new System.Windows.Forms.TextBox();
             this.NombreProducto = new System.Windows.Forms.Label();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
+            this.panelUsuarios = new System.Windows.Forms.Panel();
+            this.textBoxIdU = new System.Windows.Forms.TextBox();
+            this.EliminarUsuarioBtn = new System.Windows.Forms.Button();
+            this.AgregarUsuarioBtn = new System.Windows.Forms.Button();
+            this.label11 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.comboBoxTipoUsuario = new System.Windows.Forms.ComboBox();
+            this.textBoxContraseñaU = new System.Windows.Forms.TextBox();
+            this.textBoxNombreU = new System.Windows.Forms.TextBox();
+            this.dataGridViewUsuarios = new System.Windows.Forms.DataGridView();
+            this.pictureBox4 = new System.Windows.Forms.PictureBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.panelReservas.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxReserva)).BeginInit();
             this.panelCaja.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.CantidadProductAñadir)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.productPictureBox)).BeginInit();
@@ -87,6 +113,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.cantidadProducto)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
+            this.panelUsuarios.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewUsuarios)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox4)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
@@ -127,6 +156,7 @@
             this.MenuUsuariosBtn.TabIndex = 4;
             this.MenuUsuariosBtn.Text = "Usuarios";
             this.MenuUsuariosBtn.UseVisualStyleBackColor = true;
+            this.MenuUsuariosBtn.Click += new System.EventHandler(this.MenuUsuariosBtn_Click);
             // 
             // MenuStockBtn
             // 
@@ -197,14 +227,120 @@
             // panelReservas
             // 
             this.panelReservas.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.panelReservas.Controls.Add(this.button1);
+            this.panelReservas.Controls.Add(this.reservarBtn);
+            this.panelReservas.Controls.Add(this.mesa5);
+            this.panelReservas.Controls.Add(this.mesa4);
+            this.panelReservas.Controls.Add(this.mesa3);
+            this.panelReservas.Controls.Add(this.mesa2);
+            this.panelReservas.Controls.Add(this.mesa1);
+            this.panelReservas.Controls.Add(this.comboBox1);
+            this.panelReservas.Controls.Add(this.dateTimePicker);
+            this.panelReservas.Controls.Add(this.pictureBoxReserva);
             this.panelReservas.Location = new System.Drawing.Point(211, 0);
             this.panelReservas.Name = "panelReservas";
             this.panelReservas.Size = new System.Drawing.Size(796, 475);
             this.panelReservas.TabIndex = 1;
             // 
+            // reservarBtn
+            // 
+            this.reservarBtn.Location = new System.Drawing.Point(18, 85);
+            this.reservarBtn.Name = "reservarBtn";
+            this.reservarBtn.Size = new System.Drawing.Size(75, 23);
+            this.reservarBtn.TabIndex = 8;
+            this.reservarBtn.Text = "Reservar";
+            this.reservarBtn.UseVisualStyleBackColor = true;
+            this.reservarBtn.Click += new System.EventHandler(this.reservarBtn_Click);
+            // 
+            // mesa5
+            // 
+            this.mesa5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.mesa5.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.mesa5.Location = new System.Drawing.Point(645, 218);
+            this.mesa5.Name = "mesa5";
+            this.mesa5.Size = new System.Drawing.Size(68, 65);
+            this.mesa5.TabIndex = 7;
+            this.mesa5.UseVisualStyleBackColor = false;
+            this.mesa5.Visible = false;
+            // 
+            // mesa4
+            // 
+            this.mesa4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.mesa4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.mesa4.Location = new System.Drawing.Point(651, 370);
+            this.mesa4.Name = "mesa4";
+            this.mesa4.Size = new System.Drawing.Size(68, 65);
+            this.mesa4.TabIndex = 6;
+            this.mesa4.UseVisualStyleBackColor = false;
+            this.mesa4.Visible = false;
+            // 
+            // mesa3
+            // 
+            this.mesa3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.mesa3.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.mesa3.Location = new System.Drawing.Point(502, 370);
+            this.mesa3.Name = "mesa3";
+            this.mesa3.Size = new System.Drawing.Size(68, 65);
+            this.mesa3.TabIndex = 5;
+            this.mesa3.UseVisualStyleBackColor = false;
+            this.mesa3.Visible = false;
+            // 
+            // mesa2
+            // 
+            this.mesa2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.mesa2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.mesa2.Location = new System.Drawing.Point(356, 370);
+            this.mesa2.Name = "mesa2";
+            this.mesa2.Size = new System.Drawing.Size(68, 65);
+            this.mesa2.TabIndex = 4;
+            this.mesa2.UseVisualStyleBackColor = false;
+            this.mesa2.Visible = false;
+            // 
+            // mesa1
+            // 
+            this.mesa1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.mesa1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.mesa1.Location = new System.Drawing.Point(192, 264);
+            this.mesa1.Name = "mesa1";
+            this.mesa1.Size = new System.Drawing.Size(68, 65);
+            this.mesa1.TabIndex = 3;
+            this.mesa1.UseVisualStyleBackColor = false;
+            this.mesa1.Visible = false;
+            // 
+            // comboBox1
+            // 
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Items.AddRange(new object[] {
+            "COMIDA",
+            "CENA"});
+            this.comboBox1.Location = new System.Drawing.Point(18, 45);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(121, 21);
+            this.comboBox1.TabIndex = 1;
+            // 
+            // dateTimePicker
+            // 
+            this.dateTimePicker.Location = new System.Drawing.Point(18, 15);
+            this.dateTimePicker.Name = "dateTimePicker";
+            this.dateTimePicker.Size = new System.Drawing.Size(201, 20);
+            this.dateTimePicker.TabIndex = 0;
+            // 
+            // pictureBoxReserva
+            // 
+            this.pictureBoxReserva.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("pictureBoxReserva.BackgroundImage")));
+            this.pictureBoxReserva.Location = new System.Drawing.Point(175, 41);
+            this.pictureBoxReserva.Name = "pictureBoxReserva";
+            this.pictureBoxReserva.Size = new System.Drawing.Size(600, 409);
+            this.pictureBoxReserva.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBoxReserva.TabIndex = 2;
+            this.pictureBoxReserva.TabStop = false;
+            this.pictureBoxReserva.Visible = false;
+            // 
             // panelCaja
             // 
             this.panelCaja.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.panelCaja.Controls.Add(this.label8);
+            this.panelCaja.Controls.Add(this.comboBoxCategoriasDisponibles);
             this.panelCaja.Controls.Add(this.label2);
             this.panelCaja.Controls.Add(this.TotalTextBox);
             this.panelCaja.Controls.Add(this.imprimirBtn);
@@ -220,6 +356,23 @@
             this.panelCaja.Name = "panelCaja";
             this.panelCaja.Size = new System.Drawing.Size(799, 475);
             this.panelCaja.TabIndex = 2;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(634, 286);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(60, 13);
+            this.label8.TabIndex = 13;
+            this.label8.Text = "Categorias:";
+            // 
+            // comboBoxCategoriasDisponibles
+            // 
+            this.comboBoxCategoriasDisponibles.FormattingEnabled = true;
+            this.comboBoxCategoriasDisponibles.Location = new System.Drawing.Point(637, 306);
+            this.comboBoxCategoriasDisponibles.Name = "comboBoxCategoriasDisponibles";
+            this.comboBoxCategoriasDisponibles.Size = new System.Drawing.Size(145, 21);
+            this.comboBoxCategoriasDisponibles.TabIndex = 12;
             // 
             // label2
             // 
@@ -357,6 +510,7 @@
             // panelAlmacen
             // 
             this.panelAlmacen.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.panelAlmacen.Controls.Add(this.comboBoxCategoria);
             this.panelAlmacen.Controls.Add(this.textBoxIdProducto);
             this.panelAlmacen.Controls.Add(this.dataGridViewAlmacen);
             this.panelAlmacen.Controls.Add(this.eliminarProductoBtn);
@@ -370,7 +524,6 @@
             this.panelAlmacen.Controls.Add(this.label4);
             this.panelAlmacen.Controls.Add(this.label3);
             this.panelAlmacen.Controls.Add(this.textBoxImagenProducto);
-            this.panelAlmacen.Controls.Add(this.textBoxCategoriaProducto);
             this.panelAlmacen.Controls.Add(this.textBoxDescripcionProducto);
             this.panelAlmacen.Controls.Add(this.textBoxNombreProducto);
             this.panelAlmacen.Controls.Add(this.NombreProducto);
@@ -381,6 +534,14 @@
             this.panelAlmacen.Size = new System.Drawing.Size(796, 475);
             this.panelAlmacen.TabIndex = 2;
             this.panelAlmacen.Visible = false;
+            // 
+            // comboBoxCategoria
+            // 
+            this.comboBoxCategoria.FormattingEnabled = true;
+            this.comboBoxCategoria.Location = new System.Drawing.Point(579, 219);
+            this.comboBoxCategoria.Name = "comboBoxCategoria";
+            this.comboBoxCategoria.Size = new System.Drawing.Size(87, 21);
+            this.comboBoxCategoria.TabIndex = 22;
             // 
             // textBoxIdProducto
             // 
@@ -494,13 +655,6 @@
             this.textBoxImagenProducto.TabIndex = 5;
             this.textBoxImagenProducto.TextChanged += new System.EventHandler(this.TextBoxImagenProducto_TextChanged);
             // 
-            // textBoxCategoriaProducto
-            // 
-            this.textBoxCategoriaProducto.Location = new System.Drawing.Point(579, 218);
-            this.textBoxCategoriaProducto.Name = "textBoxCategoriaProducto";
-            this.textBoxCategoriaProducto.Size = new System.Drawing.Size(87, 20);
-            this.textBoxCategoriaProducto.TabIndex = 4;
-            // 
             // textBoxDescripcionProducto
             // 
             this.textBoxDescripcionProducto.Location = new System.Drawing.Point(617, 169);
@@ -540,22 +694,147 @@
             this.pictureBox3.TabIndex = 21;
             this.pictureBox3.TabStop = false;
             // 
+            // panelUsuarios
+            // 
+            this.panelUsuarios.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.panelUsuarios.Controls.Add(this.textBoxIdU);
+            this.panelUsuarios.Controls.Add(this.EliminarUsuarioBtn);
+            this.panelUsuarios.Controls.Add(this.AgregarUsuarioBtn);
+            this.panelUsuarios.Controls.Add(this.label11);
+            this.panelUsuarios.Controls.Add(this.label10);
+            this.panelUsuarios.Controls.Add(this.label9);
+            this.panelUsuarios.Controls.Add(this.comboBoxTipoUsuario);
+            this.panelUsuarios.Controls.Add(this.textBoxContraseñaU);
+            this.panelUsuarios.Controls.Add(this.textBoxNombreU);
+            this.panelUsuarios.Controls.Add(this.dataGridViewUsuarios);
+            this.panelUsuarios.Controls.Add(this.pictureBox4);
+            this.panelUsuarios.Location = new System.Drawing.Point(211, 0);
+            this.panelUsuarios.Name = "panelUsuarios";
+            this.panelUsuarios.Size = new System.Drawing.Size(799, 475);
+            this.panelUsuarios.TabIndex = 14;
+            // 
+            // textBoxIdU
+            // 
+            this.textBoxIdU.Location = new System.Drawing.Point(637, 15);
+            this.textBoxIdU.Name = "textBoxIdU";
+            this.textBoxIdU.Size = new System.Drawing.Size(100, 20);
+            this.textBoxIdU.TabIndex = 10;
+            this.textBoxIdU.Visible = false;
+            // 
+            // EliminarUsuarioBtn
+            // 
+            this.EliminarUsuarioBtn.Location = new System.Drawing.Point(700, 202);
+            this.EliminarUsuarioBtn.Name = "EliminarUsuarioBtn";
+            this.EliminarUsuarioBtn.Size = new System.Drawing.Size(75, 23);
+            this.EliminarUsuarioBtn.TabIndex = 8;
+            this.EliminarUsuarioBtn.Text = "Eliminar";
+            this.EliminarUsuarioBtn.UseVisualStyleBackColor = true;
+            this.EliminarUsuarioBtn.Click += new System.EventHandler(this.EliminarUsuarioBtn_Click);
+            // 
+            // AgregarUsuarioBtn
+            // 
+            this.AgregarUsuarioBtn.Location = new System.Drawing.Point(610, 202);
+            this.AgregarUsuarioBtn.Name = "AgregarUsuarioBtn";
+            this.AgregarUsuarioBtn.Size = new System.Drawing.Size(75, 23);
+            this.AgregarUsuarioBtn.TabIndex = 7;
+            this.AgregarUsuarioBtn.Text = "Agregar";
+            this.AgregarUsuarioBtn.UseVisualStyleBackColor = true;
+            this.AgregarUsuarioBtn.Click += new System.EventHandler(this.AgregarUsuarioBtn_Click);
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(607, 144);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(28, 13);
+            this.label11.TabIndex = 6;
+            this.label11.Text = "Tipo";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(607, 95);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(61, 13);
+            this.label10.TabIndex = 5;
+            this.label10.Text = "Contraseña";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(607, 45);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(83, 13);
+            this.label9.TabIndex = 4;
+            this.label9.Text = "Nombre Usuario";
+            // 
+            // comboBoxTipoUsuario
+            // 
+            this.comboBoxTipoUsuario.FormattingEnabled = true;
+            this.comboBoxTipoUsuario.Location = new System.Drawing.Point(610, 160);
+            this.comboBoxTipoUsuario.Name = "comboBoxTipoUsuario";
+            this.comboBoxTipoUsuario.Size = new System.Drawing.Size(103, 21);
+            this.comboBoxTipoUsuario.TabIndex = 3;
+            // 
+            // textBoxContraseñaU
+            // 
+            this.textBoxContraseñaU.Location = new System.Drawing.Point(610, 111);
+            this.textBoxContraseñaU.Name = "textBoxContraseñaU";
+            this.textBoxContraseñaU.Size = new System.Drawing.Size(141, 20);
+            this.textBoxContraseñaU.TabIndex = 2;
+            // 
+            // textBoxNombreU
+            // 
+            this.textBoxNombreU.Location = new System.Drawing.Point(610, 61);
+            this.textBoxNombreU.Name = "textBoxNombreU";
+            this.textBoxNombreU.Size = new System.Drawing.Size(141, 20);
+            this.textBoxNombreU.TabIndex = 1;
+            // 
+            // dataGridViewUsuarios
+            // 
+            this.dataGridViewUsuarios.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridViewUsuarios.Location = new System.Drawing.Point(18, 15);
+            this.dataGridViewUsuarios.Name = "dataGridViewUsuarios";
+            this.dataGridViewUsuarios.Size = new System.Drawing.Size(568, 435);
+            this.dataGridViewUsuarios.TabIndex = 0;
+            // 
+            // pictureBox4
+            // 
+            this.pictureBox4.Location = new System.Drawing.Point(607, 42);
+            this.pictureBox4.Name = "pictureBox4";
+            this.pictureBox4.Size = new System.Drawing.Size(168, 183);
+            this.pictureBox4.TabIndex = 9;
+            this.pictureBox4.TabStop = false;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(18, 125);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(121, 23);
+            this.button1.TabIndex = 9;
+            this.button1.Text = "Cancelar Reserva";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1011, 476);
-            this.Controls.Add(this.panelAlmacen);
             this.Controls.Add(this.panelCaja);
-            this.Controls.Add(this.panelReservas);
             this.Controls.Add(this.panel1);
+            this.Controls.Add(this.panelReservas);
+            this.Controls.Add(this.panelUsuarios);
+            this.Controls.Add(this.panelAlmacen);
             this.Name = "Form2";
             this.Text = "SidraLovers";
             this.panel1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.panelReservas.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxReserva)).EndInit();
             this.panelCaja.ResumeLayout(false);
             this.panelCaja.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.CantidadProductAñadir)).EndInit();
@@ -568,6 +847,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.cantidadProducto)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
+            this.panelUsuarios.ResumeLayout(false);
+            this.panelUsuarios.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewUsuarios)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox4)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -603,7 +886,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox textBoxImagenProducto;
-        private System.Windows.Forms.TextBox textBoxCategoriaProducto;
         private System.Windows.Forms.TextBox textBoxDescripcionProducto;
         private System.Windows.Forms.TextBox textBoxNombreProducto;
         private System.Windows.Forms.Button eliminarProductoBtn;
@@ -618,5 +900,30 @@
         private System.Windows.Forms.TextBox textBoxIdProducto;
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.PictureBox pictureBox3;
+        private System.Windows.Forms.ComboBox comboBoxCategoria;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.ComboBox comboBoxCategoriasDisponibles;
+        private System.Windows.Forms.Panel panelUsuarios;
+        private System.Windows.Forms.TextBox textBoxContraseñaU;
+        private System.Windows.Forms.TextBox textBoxNombreU;
+        private System.Windows.Forms.DataGridView dataGridViewUsuarios;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.ComboBox comboBoxTipoUsuario;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.Button EliminarUsuarioBtn;
+        private System.Windows.Forms.Button AgregarUsuarioBtn;
+        private System.Windows.Forms.PictureBox pictureBox4;
+        private System.Windows.Forms.TextBox textBoxIdU;
+        private System.Windows.Forms.DateTimePicker dateTimePicker;
+        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.PictureBox pictureBoxReserva;
+        private System.Windows.Forms.Button mesa5;
+        private System.Windows.Forms.Button mesa4;
+        private System.Windows.Forms.Button mesa3;
+        private System.Windows.Forms.Button mesa2;
+        private System.Windows.Forms.Button mesa1;
+        private System.Windows.Forms.Button reservarBtn;
+        private System.Windows.Forms.Button button1;
     }
 }

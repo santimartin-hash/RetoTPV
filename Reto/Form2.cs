@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -15,15 +16,20 @@ namespace Reto
 {
     public partial class Form2 : Form
     {
-        public Form2(string userType)
+        private int currentUserId;
+        private string currentUserType;
+
+        public Form2(int userId, string userType)
         {
             InitializeComponent();
+            currentUserId = userId;
+            currentUserType = userType;
             ConfigureButtons(userType);
             InitializeTPV();
             InitializeDataGridView();
             // Inicializar columnas y estilo del DataGridView
             InitializeDataGridViewAlmacen();
-
+            InitializeDataGridViewUsuarios();
             // Cargar productos en el DataGridView del panelAlmacen
             LoadProductsToDataGridViewAlmacen();
             panelCaja.Visible = true;
@@ -31,16 +37,154 @@ namespace Reto
             // Suscribirse al evento MouseClick
             listViewItems.MouseClick += ListViewItems_MouseClick;
             panelAlmacen.Click += new EventHandler(panelAlmacen_Click);
+            panelUsuarios.Click += new EventHandler(panelUsuarios_Click);
+
             dataGridViewAlmacen.CellClick += new DataGridViewCellEventHandler(DataGridViewAlmacen_CellClick);
-        
+            dataGridViewUsuarios.CellClick += new DataGridViewCellEventHandler(DataGridViewUsuarios_CellClick);
             // Configurar evento de clic
             listViewItems.Click += ListViewItems_Click;
 
             // Configurar el ListView para usar el modo de dibujo propietario
             listViewItems.OwnerDraw = true;
             listViewItems.DrawItem += ListViewItems_DrawItem;
+            // Cargar categorías en el ComboBox de panelCaja
+            LoadCategoriesToComboBoxCategoriasDisponibles();
+            comboBoxCategoriasDisponibles.SelectedIndexChanged += ComboBoxCategoriasDisponibles_SelectedIndexChanged;
 
+            comboBoxCategoriasDisponibles.SelectedIndex = 0;
+
+            LoadUserTypesToComboBox();
+            // Establecer la fecha mínima del DateTimePicker a la fecha actual
+            dateTimePicker.MinDate = DateTime.Today;
+            dateTimePicker.ValueChanged += new EventHandler(DateTimePickerOrComboBox_Changed);
+            comboBox1.SelectedIndexChanged += new EventHandler(DateTimePickerOrComboBox_Changed);
+
+            comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
+            // Asignar el evento de clic a cada botón de mesa
+            mesa1.Click += new EventHandler(Mesa_Click);
+            mesa2.Click += new EventHandler(Mesa_Click);
+            mesa3.Click += new EventHandler(Mesa_Click);
+            mesa4.Click += new EventHandler(Mesa_Click);
         }
+
+
+     
+
+        private void LoadCategoriesToComboBoxCategoriasDisponibles()
+        {
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            string query = "SELECT DISTINCT Categoria FROM Productos"; // Seleccionar categorías distintas
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            comboBoxCategoriasDisponibles.Items.Clear(); // Limpiar el ComboBox antes de agregar nuevas categorías
+                            comboBoxCategoriasDisponibles.Items.Add("TODAS"); // Añadir opción "TODAS" al principio
+
+                            while (reader.Read())
+                            {
+                                string categoria = reader["Categoria"].ToString();
+                                comboBoxCategoriasDisponibles.Items.Add(categoria);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al cargar las categorías: " + ex.Message);
+                }
+            }
+        }
+
+        private void ComboBoxCategoriasDisponibles_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedCategory = comboBoxCategoriasDisponibles.SelectedItem.ToString();
+            FilterListViewItemsByCategory(selectedCategory);
+        }
+
+        private void FilterListViewItemsByCategory(string category)
+        {
+            listViewItems.Items.Clear(); // Vaciar la lista
+
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            string query = category == "TODAS" ? "SELECT NombreProducto, Precio, Descripcion, Categoria, [Imagen(URL)], Cantidad FROM Productos" :
+                                                 "SELECT NombreProducto, Precio, Descripcion, Categoria, [Imagen(URL)], Cantidad FROM Productos WHERE Categoria = ?";
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        if (category != "TODAS")
+                        {
+                            command.Parameters.AddWithValue("@Categoria", category);
+                        }
+
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            ImageList imageList = new ImageList();
+                            imageList.ImageSize = new Size(64, 64);
+
+                            while (reader.Read())
+                            {
+                                string nombreProducto = reader["NombreProducto"].ToString();
+                                string precio = reader["Precio"].ToString();
+                                string descripcion = reader["Descripcion"].ToString();
+                                string categoriaProducto = reader["Categoria"].ToString();
+                                string imagenUrl = reader["Imagen(URL)"].ToString();
+                                string cantidad = reader["Cantidad"].ToString();
+
+                                // Crear un diccionario para almacenar todos los datos del producto
+                                var productData = new Dictionary<string, string>
+                                {
+                                    { "NombreProducto", nombreProducto },
+                                    { "Precio", precio },
+                                    { "Descripcion", descripcion },
+                                    { "Categoria", categoriaProducto },
+                                    { "Imagen(URL)", imagenUrl },
+                                    { "Cantidad", cantidad }
+                                };
+
+                                // Descargar imagen y agregarla al ImageList
+                                Image image = DownloadImage(imagenUrl);
+                                imageList.Images.Add(nombreProducto, image);
+
+                                // Crear un ListViewItem con el nombre del producto y asignar la imagen
+                                ListViewItem item = new ListViewItem(nombreProducto);
+                                item.ImageKey = nombreProducto;
+                                item.Tag = productData; // Guardar todos los datos en Tag
+
+                                // Deshabilitar y oscurecer el ítem si la cantidad es 0
+                                if (int.Parse(cantidad) == 0)
+                                {
+                                    item.ForeColor = Color.Gray;
+                                    item.BackColor = Color.LightGray;
+                                }
+
+                                listViewItems.Items.Add(item);
+                            }
+
+                            // Configurar ListView para usar ImageList
+                            listViewItems.LargeImageList = imageList;
+                            listViewItems.View = View.LargeIcon;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al cargar los productos: " + ex.Message);
+                }
+            }
+        }
+
         private void panelAlmacen_Click(object sender, EventArgs e)
         {
             // Deselecciona la fila en el DataGridView
@@ -50,7 +194,7 @@ namespace Reto
             textBoxNombreProducto.Text = "";
             textBoxPrecioProducto.Text = "";
             textBoxDescripcionProducto.Text = "";
-            textBoxCategoriaProducto.Text = "";
+            comboBoxCategoria.Text = "";
             cantidadProducto.Text = "";
             textBoxImagenProducto.Text = "";
 
@@ -99,7 +243,7 @@ namespace Reto
                 MenuStockBtn.Visible = true;
                 MenuUsuariosBtn.Visible = true;
             }
-            else if (userType == "Inv")
+            else if (userType == "Usuario")
             {
                 MenuStockBtn.Visible = false;
                 MenuUsuariosBtn.Visible = false;
@@ -161,7 +305,7 @@ namespace Reto
                                 {
                                     item.ForeColor = Color.Gray;
                                     item.BackColor = Color.LightGray;
-                              
+
                                 }
 
                                 listViewItems.Items.Add(item);
@@ -200,7 +344,7 @@ namespace Reto
             dataGridViewProducts.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dataGridViewProducts.ColumnHeadersDefaultCellStyle.BackColor = Color.DarkGreen;
             dataGridViewProducts.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-    
+
 
             // Ajustar el tamaño de las columnas y filas
             dataGridViewProducts.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -212,7 +356,7 @@ namespace Reto
 
             // Suscribirse al evento CellClick
             dataGridViewProducts.CellClick += DataGridViewProducts_CellClick;
-          
+
         }
 
 
@@ -265,7 +409,7 @@ namespace Reto
 
                 if (cantidad == 0)
                 {
-                 
+
 
                     // Ocultar los controles
                     productPictureBox.Visible = false;
@@ -377,7 +521,7 @@ namespace Reto
                             ActualizarTotal();
                             return;
                         }
-                    
+
                     }
                     CantidadProductAñadir.Value = 1;
                     ActualizarTotal();
@@ -389,7 +533,7 @@ namespace Reto
                 newRow.CreateCells(dataGridViewProducts);
                 newRow.Cells[0].Value = listViewItems.LargeImageList.Images[selectedItem.ImageKey];
                 newRow.Cells[1].Value = productData["NombreProducto"];
-       
+
                 newRow.Cells[2].Value = productData["Descripcion"];
                 newRow.Cells[3].Value = productData["Categoria"];
                 if (cantidadAañadir > int.Parse(productData["Cantidad"]))
@@ -408,7 +552,7 @@ namespace Reto
                 CantidadProductAñadir.Value = 1;
                 ActualizarTotal();
             }
-    
+
         }
         private void SelectRow(int rowIndex)
         {
@@ -477,7 +621,7 @@ namespace Reto
                         return;
 
                     }
-                
+
                 }
                 CantidadProductAñadir.Value = 1;
                 ActualizarTotal();
@@ -490,7 +634,7 @@ namespace Reto
         {
             this.Close();
             Form1 form1 = new Form1();
-           form1.Visible = true;
+            form1.Visible = true;
         }
 
         private void ActualizarTotal()
@@ -538,11 +682,11 @@ namespace Reto
 
                                 // Construir la consulta con los valores de los parámetros
                                 string updateQuery = $"UPDATE Productos SET Cantidad = Cantidad - {cantidad} WHERE NombreProducto = '{nombreProducto}'";
-                               
+
                                 // Actualizar la cantidad en la base de datos
                                 using (OleDbCommand updateCommand = new OleDbCommand(updateQuery, connection, transaction))
                                 {
-                                    updateCommand.ExecuteNonQuery(); 
+                                    updateCommand.ExecuteNonQuery();
                                 }
                             }
                         }
@@ -590,6 +734,9 @@ namespace Reto
 
             MessageBox.Show("Factura generada correctamente en " + filePath);
 
+            // Abrir el archivo de texto
+            System.Diagnostics.Process.Start(filePath);
+
             // Limpiar el DataGridView
             dataGridViewProducts.Rows.Clear();
 
@@ -603,8 +750,11 @@ namespace Reto
             QuitarProductoBtn.Visible = false;
             labelcantidad.Visible = false;
             TotalTextBox.Text = "0,00 €";
+            comboBoxCategoriasDisponibles.SelectedIndex = 0;
+
             InitializeTPV();
         }
+
 
         private void MenuCajaBtn_Click(object sender, EventArgs e)
         {
@@ -612,14 +762,19 @@ namespace Reto
             panelCaja.Visible = true;
             panelReservas.Visible = false;
             panelAlmacen.Visible = false;
-           
+            panelUsuarios.Visible = false;
+            comboBoxCategoriasDisponibles.SelectedIndex = 0;
+            LoadCategoriesToComboBoxCategoriasDisponibles();
+
         }
 
         private void MenuReservaBtn_Click(object sender, EventArgs e)
         {
-             panelReservas.Visible = true;
-             panelCaja.Visible = false;
+            panelReservas.Visible = true;
+            panelCaja.Visible = false;
             panelAlmacen.Visible = false;
+            panelUsuarios.Visible = false;
+            comboBoxCategoriasDisponibles.SelectedIndex = 0;
         }
 
         private void MenuStockBtn_Click(object sender, EventArgs e)
@@ -627,8 +782,21 @@ namespace Reto
             panelAlmacen.Visible = true;
             panelReservas.Visible = false;
             panelCaja.Visible = false;
+            panelUsuarios.Visible = false;
+            comboBoxCategoriasDisponibles.SelectedIndex = 0;
+            LoadProductsToDataGridViewAlmacen();
 
-        
+
+        }
+        private void MenuUsuariosBtn_Click(object sender, EventArgs e)
+        {
+            panelUsuarios.Visible = true;
+            panelAlmacen.Visible = false;
+            panelReservas.Visible = false;
+            panelCaja.Visible = false;
+            comboBoxCategoriasDisponibles.SelectedIndex = 0;
+            LoadUsersToDataGridView();
+
         }
         private void InitializeDataGridViewAlmacen()
         {
@@ -700,7 +868,7 @@ namespace Reto
                 Visible = false
             });
 
-         
+
 
 
             // Estilo del DataGridView
@@ -716,8 +884,43 @@ namespace Reto
             dataGridViewAlmacen.DefaultCellStyle.SelectionForeColor = Color.Black;
             dataGridViewAlmacen.DefaultCellStyle.BackColor = Color.LightGreen;
             dataGridViewAlmacen.AlternatingRowsDefaultCellStyle.BackColor = Color.LightGreen;
-        }
 
+            // Cargar categorías en el ComboBox
+            LoadCategoriesToComboBox();
+        }
+        private void LoadCategoriesToComboBox()
+        {
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            string query = "SELECT DISTINCT Categoria FROM Productos"; // Seleccionar categorías distintas
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            comboBoxCategoria.Items.Clear(); // Limpiar el ComboBox antes de agregar nuevas categorías
+
+                            while (reader.Read())
+                            {
+                                string categoria = reader["Categoria"].ToString();
+                                comboBoxCategoria.Items.Add(categoria);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al cargar las categorías: " + ex.Message);
+                }
+            }
+
+            // Añadir opción de "Nueva categoría" al final
+            comboBoxCategoria.Items.Add("Nueva categoría");
+        }
         private void DataGridViewAlmacen_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             // Verifica que la celda clicada no sea el encabezado
@@ -733,10 +936,10 @@ namespace Reto
                 textBoxNombreProducto.Text = row.Cells["NombreProducto"].Value.ToString();
                 textBoxPrecioProducto.Text = row.Cells["Precio"].Value.ToString();
                 textBoxDescripcionProducto.Text = row.Cells["Descripcion"].Value.ToString();
-                textBoxCategoriaProducto.Text = row.Cells["Categoria"].Value.ToString();
+                comboBoxCategoria.Text = row.Cells["Categoria"].Value.ToString();
                 cantidadProducto.Text = row.Cells["Cantidad"].Value.ToString();
                 textBoxImagenProducto.Text = row.Cells["ImagenURL"].Value.ToString();
-            
+
 
                 // Cambia el texto del botón de agregar a "Modificar"
                 agregarProductoBtn.Text = "Modificar";
@@ -770,7 +973,7 @@ namespace Reto
                                 row["Imagen"] = DownloadImage(imagenUrl);
                                 row["ImagenURL"] = imagenUrl; // Asignar la URL de la imagen a la nueva columna
 
-                           
+
                             }
 
                             dataGridViewAlmacen.DataSource = dataTable;
@@ -810,6 +1013,44 @@ namespace Reto
         private void agregarProductoBtn_Click(object sender, EventArgs e)
         {
             string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            string defaultImageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Imagen_no_disponible.svg/1200px-Imagen_no_disponible.svg.png"; // Ruta de la imagen por defecto
+
+            // Validar que el nombre no sea nulo o vacío
+            if (string.IsNullOrWhiteSpace(textBoxNombreProducto.Text))
+            {
+                MessageBox.Show("El nombre del producto no puede estar vacío.");
+                return;
+            }
+            // Validar que el precio no sea nulo o vacío
+            if (string.IsNullOrWhiteSpace(textBoxPrecioProducto.Text))
+            {
+                MessageBox.Show("El precio del producto no puede estar vacío.");
+                return;
+            }
+            // Validar que la categoría no sea nula o vacía
+            if (string.IsNullOrWhiteSpace(comboBoxCategoria.Text))
+            {
+                MessageBox.Show("La categoría del producto no puede estar vacía.");
+                return;
+            }
+
+            // Validar que el precio sea un número válido y que use coma como separador decimal
+            if (!double.TryParse(textBoxPrecioProducto.Text.Trim().Replace('.', ','), out double precio))
+            {
+                MessageBox.Show("El precio debe ser un número válido.");
+                return;
+            }
+
+            // Asignar imagen por defecto si la URL está vacía
+            string imagenUrl = string.IsNullOrWhiteSpace(textBoxImagenProducto.Text) ? defaultImageUrl : textBoxImagenProducto.Text;
+
+            // Validar y manejar la cantidad
+            int cantidad = 0; // Valor por defecto
+            if (!int.TryParse(cantidadProducto.Text, out cantidad))
+            {
+                // Si no se puede parsear, se asigna 0
+                cantidad = 0;
+            }
 
             using (OleDbConnection connection = new OleDbConnection(connectionString))
             {
@@ -824,11 +1065,11 @@ namespace Reto
                         using (OleDbCommand command = new OleDbCommand(query, connection))
                         {
                             command.Parameters.AddWithValue("@NombreProducto", textBoxNombreProducto.Text);
-                            command.Parameters.AddWithValue("@Precio", decimal.Parse(textBoxPrecioProducto.Text));
-                            command.Parameters.AddWithValue("@Descripcion", textBoxDescripcionProducto.Text);
-                            command.Parameters.AddWithValue("@Categoria", textBoxCategoriaProducto.Text);
-                            command.Parameters.AddWithValue("@Imagen(URL)", textBoxImagenProducto.Text);
-                            command.Parameters.AddWithValue("@Cantidad", int.Parse(cantidadProducto.Text));
+                            command.Parameters.AddWithValue("@Precio", precio);
+                            command.Parameters.AddWithValue("@Descripcion", (object)textBoxDescripcionProducto.Text ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@Categoria", comboBoxCategoria.Text);
+                            command.Parameters.AddWithValue("@Imagen(URL)", imagenUrl);
+                            command.Parameters.AddWithValue("@Cantidad", cantidad); // Usamos la cantidad calculada
                             command.Parameters.AddWithValue("@Id", int.Parse(textBoxIdProducto.Text)); // Asumiendo que tienes un campo Id para identificar el producto
 
                             command.ExecuteNonQuery();
@@ -843,11 +1084,11 @@ namespace Reto
                         using (OleDbCommand command = new OleDbCommand(query, connection))
                         {
                             command.Parameters.AddWithValue("@NombreProducto", textBoxNombreProducto.Text);
-                            command.Parameters.AddWithValue("@Precio", decimal.Parse(textBoxPrecioProducto.Text ));
-                            command.Parameters.AddWithValue("@Descripcion", textBoxDescripcionProducto.Text);
-                            command.Parameters.AddWithValue("@Categoria", textBoxCategoriaProducto.Text);
-                            command.Parameters.AddWithValue("@Imagen(URL)", textBoxImagenProducto.Text);
-                            command.Parameters.AddWithValue("@Cantidad", int.Parse(cantidadProducto.Text));
+                            command.Parameters.AddWithValue("@Precio", precio);
+                            command.Parameters.AddWithValue("@Descripcion", (object)textBoxDescripcionProducto.Text ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@Categoria", comboBoxCategoria.Text);
+                            command.Parameters.AddWithValue("@Imagen(URL)", imagenUrl);
+                            command.Parameters.AddWithValue("@Cantidad", cantidad); // Usamos la cantidad calculada
 
                             command.ExecuteNonQuery();
                         }
@@ -857,30 +1098,30 @@ namespace Reto
                 {
                     MessageBox.Show("Error al guardar el producto: " + ex.Message);
                 }
+
+                // Actualizar la vista del producto en el grid
                 actualizarDataGridProductosAlmacen();
 
+                // Limpiar los campos después de la operación
                 textBoxIdProducto.Text = "";
                 imagenProducto.Image = null;
                 textBoxNombreProducto.Text = "";
                 textBoxPrecioProducto.Text = "";
                 textBoxDescripcionProducto.Text = "";
-                textBoxCategoriaProducto.Text = "";
-                cantidadProducto.Text = "";
+                comboBoxCategoria.Text = "";
+                cantidadProducto.Text = ""; // Restablecer cantidad
                 textBoxImagenProducto.Text = "";
-
-
             }
         }
+
         private async void actualizarDataGridProductosAlmacen()
         {
-      
+
             await Task.Delay(100);
 
             // Inicializar y cargar el DataGridView
             InitializeDataGridViewAlmacen();
             LoadProductsToDataGridViewAlmacen();
-
-      
         }
 
         private void eliminarProductoBtn_Click(object sender, EventArgs e)
@@ -929,12 +1170,572 @@ namespace Reto
                 {
                     MessageBox.Show("Error al eliminar el producto: " + ex.Message);
                 }
+
             }
+          
+            // Limpiar los campos después de la operación
+            textBoxIdProducto.Text = "";
+            imagenProducto.Image = null;
+            textBoxNombreProducto.Text = "";
+            textBoxPrecioProducto.Text = "";
+            textBoxDescripcionProducto.Text = "";
+            comboBoxCategoria.Text = "";
+            cantidadProducto.Text = ""; // Restablecer cantidad
+            textBoxImagenProducto.Text = "";
+
+            agregarProductoBtn.Text = "Agregar";
+        }
+        private void LoadUserTypesToComboBox()
+        {
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            string query = "SELECT DISTINCT Tipo FROM Usuarios"; // Seleccionar tipos distintos
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            comboBoxTipoUsuario.Items.Clear(); // Limpiar el ComboBox antes de agregar nuevos tipos
+
+                            while (reader.Read())
+                            {
+                                string tipo = reader["Tipo"].ToString();
+                                comboBoxTipoUsuario.Items.Add(tipo);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al cargar los tipos de usuario: " + ex.Message);
+                }
+            }
+
+            // Añadir opción de "Nuevo tipo de usuario" al final
+            comboBoxTipoUsuario.Items.Add("Nuevo tipo de usuario");
         }
 
 
+        public void InitializeDataGridViewUsuarios()
+        {
+            // Limpiar el DataGridView
+            dataGridViewUsuarios.Columns.Clear();
+            dataGridViewUsuarios.AutoGenerateColumns = false;
+            // Añadir columnas al DataGridView
+            dataGridViewUsuarios.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Id",
+                HeaderText = "Id",
+                DataPropertyName = "Id",
+                Width = 70
+            });
+            dataGridViewUsuarios.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "NombreUsuario",
+                HeaderText = "Nombre",
+                DataPropertyName = "NombreUsuario",
+                Width = 150
+            });
+            dataGridViewUsuarios.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Contraseña",
+                HeaderText = "Contraseña",
+                DataPropertyName = "Contraseña",
+                Width = 150
+            });
+            dataGridViewUsuarios.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Tipo",
+                HeaderText = "Tipo",
+                DataPropertyName = "Tipo",
+                Width = 100
+            });
+            // Estilo del DataGridView
+            dataGridViewUsuarios.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridViewUsuarios.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dataGridViewUsuarios.MultiSelect = false;
+            dataGridViewUsuarios.AllowUserToAddRows = false;
+            dataGridViewUsuarios.AllowUserToDeleteRows = false;
+            dataGridViewUsuarios.ReadOnly = true;
+            // Cambiar el color de la fila seleccionada y las filas normales
+            dataGridViewUsuarios.DefaultCellStyle.SelectionBackColor = Color.Green;
+            dataGridViewUsuarios.DefaultCellStyle.SelectionForeColor = Color.Black;
+            dataGridViewUsuarios.DefaultCellStyle.BackColor = Color.LightGreen;
+            dataGridViewUsuarios.AlternatingRowsDefaultCellStyle.BackColor = Color.LightGreen;
+            // Cargar los usuarios en el DataGridView
+            LoadUsersToDataGridView();
 
+        }
+
+        private void LoadUsersToDataGridView()
+        {
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            string query = "SELECT Id, NombreUsuario, Contraseña, Tipo FROM Usuarios"; // Seleccionar columnas específicas
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            DataTable dataTable = new DataTable();
+                            dataTable.Load(reader);
+                            dataGridViewUsuarios.DataSource = dataTable;
+                            // Deseleccionar cualquier celda
+                            dataGridViewUsuarios.ClearSelection();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al cargar los usuarios: " + ex.Message);
+                }
+            }
+        }
+        private void panelUsuarios_Click(object sender, EventArgs e)
+        {
+            // Deselecciona la fila en el DataGridView
+            dataGridViewUsuarios.ClearSelection();
+            dataGridViewUsuarios.CurrentCell = null;
+            textBoxContraseñaU.Text = "";
+            textBoxNombreU.Text = "";
+            textBoxIdU.Text = "";
+            comboBoxTipoUsuario.SelectedIndex = -1;
+            // Cambia el texto del botón de agregar a "Agregar"
+            AgregarUsuarioBtn.Text = "Agregar";
+        }
+        private void DataGridViewUsuarios_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Verifica que la celda clicada no sea el encabezado
+            if (e.RowIndex >= 0)
+            {
+                // Obtén la fila seleccionada
+                DataGridViewRow row = dataGridViewUsuarios.Rows[e.RowIndex];
+
+                textBoxContraseñaU.Text = row.Cells["Contraseña"].Value.ToString();
+                textBoxNombreU.Text = row.Cells["NombreUsuario"].Value.ToString();
+                comboBoxTipoUsuario.Text = row.Cells["Tipo"].Value.ToString();
+
+                textBoxIdU.Text = row.Cells["Id"].Value.ToString();
+
+
+
+                // Cambia el texto del botón de agregar a "Modificar"
+                AgregarUsuarioBtn.Text = "Modificar";
+            }
+        }
+
+        private void AgregarUsuarioBtn_Click(object sender, EventArgs e)
+        {
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            // Validar que el nombre no sea nulo o vacío
+            if (string.IsNullOrWhiteSpace(textBoxNombreU.Text))
+            {
+                MessageBox.Show("El nombre del usuario no puede estar vacío.");
+                return;
+            }
+            // Validar que la contraseña no sea nula o vacía
+            if (string.IsNullOrWhiteSpace(textBoxContraseñaU.Text))
+            {
+                MessageBox.Show("La contraseña del usuario no puede estar vacía.");
+                return;
+            }
+            // Validar que el tipo no sea nulo o vacío
+            if (string.IsNullOrWhiteSpace(comboBoxTipoUsuario.Text))
+            {
+                MessageBox.Show("El tipo del usuario no puede estar vacío.");
+                return;
+            }
+      
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    if (AgregarUsuarioBtn.Text == "Modificar")
+                    {
+                        // Código para modificar el usuario existente
+                        string query = "UPDATE Usuarios SET NombreUsuario = ?, Contraseña = ?, Tipo = ? WHERE Id = ?";
+                        using (OleDbCommand command = new OleDbCommand(query, connection))
+                        {
+                            command.Parameters.AddWithValue("@NombreUsuario", textBoxNombreU.Text);
+                            command.Parameters.AddWithValue("@Contraseña", textBoxContraseñaU.Text);
+                            command.Parameters.AddWithValue("@Tipo", comboBoxTipoUsuario.Text);
+                            command.Parameters.AddWithValue("@Id", int.Parse(textBoxIdU.Text)); // Usar el Id del usuario
+                            command.ExecuteNonQuery();
+                        }
+                        AgregarUsuarioBtn.Text = "Agregar";
+                        actualizarDataGridUsuarios();
+                    }
+                    else if (AgregarUsuarioBtn.Text == "Agregar")
+                    {
+                        // Código para insertar un nuevo usuario
+                        string query = "INSERT INTO Usuarios (NombreUsuario, Contraseña, Tipo) VALUES (?, ?, ?)";
+                        using (OleDbCommand command = new OleDbCommand(query, connection))
+                        {
+                            command.Parameters.AddWithValue("@NombreUsuario", textBoxNombreU.Text);
+                            command.Parameters.AddWithValue("@Contraseña", textBoxContraseñaU.Text);
+                            command.Parameters.AddWithValue("@Tipo", comboBoxTipoUsuario.Text);
+                            command.ExecuteNonQuery();
+                        }
+                        actualizarDataGridUsuarios();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al guardar el usuario: " + ex.Message);
+                }
+                actualizarDataGridUsuarios();
+               
+                // Limpiar los campos después de la operación
+                textBoxIdU.Text = "";
+                textBoxContraseñaU.Text = "";
+                textBoxNombreU.Text = "";
+                comboBoxTipoUsuario.Text = "";
+            }
+        }
+
+        private async void actualizarDataGridUsuarios()
+        {
+
+            await Task.Delay(100);
+
+            // Inicializar y cargar el DataGridView
+            InitializeDataGridViewUsuarios();
+
+            LoadUsersToDataGridView();
+            LoadUserTypesToComboBox();
+
+        }
+
+        private void EliminarUsuarioBtn_Click(object sender, EventArgs e)
+        {
+            // Suponiendo que tienes un TextBox llamado textBoxNombreU y otro llamado textBoxContraseñaU
+            string usuarioNombre = textBoxNombreU.Text;
+            string usuarioContraseña = textBoxContraseñaU.Text;
+            string id = textBoxIdU.Text;
+
+            if (string.IsNullOrWhiteSpace(usuarioNombre))
+            {
+                MessageBox.Show("Por favor, ingrese un nombre de usuario válido.");
+                return;
+            }
+
+            // Comprobar si el usuario que se intenta eliminar es el mismo que el usuario actual
+            if (int.Parse(id) == currentUserId)
+            {
+                MessageBox.Show("No se puede eliminar el usuario actual.");
+                return;
+            }
+
+            // Cadena de conexión a la base de datos
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    // Consulta SQL para eliminar el usuario
+                    string query = "DELETE FROM Usuarios WHERE Id = @Id";
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        // Agregar el parámetro a la consulta
+                        command.Parameters.AddWithValue("@Id", id);
+                        int rowsAffected = command.ExecuteNonQuery();
+                        if (rowsAffected > 0)
+                        {
+                            MessageBox.Show("Usuario eliminado correctamente.");
+                            // Actualizar el DataGridView
+                            LoadUsersToDataGridView();
+                        }
+                        else
+                        {
+                            MessageBox.Show("El usuario no existe.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al eliminar el usuario: " + ex.Message);
+                }
+            }
+            LoadUserTypesToComboBox();
+            // Limpiar los campos después de la operación
+            textBoxIdU.Text = "";
+            textBoxContraseñaU.Text = "";
+            textBoxNombreU.Text = "";
+            comboBoxTipoUsuario.Text = "";
+
+            AgregarUsuarioBtn.Text = "Agregar";
+        }
+
+        private void DateTimePickerOrComboBox_Changed(object sender, EventArgs e)
+        {
+            // Verificar si ambos controles tienen una selección
+            if (dateTimePicker.Value.Date >= DateTime.Today && comboBox1.SelectedIndex != -1)
+            {
+                pictureBoxReserva.Visible = true;
+                mesa1.Visible = true;
+                mesa2.Visible = true;
+                mesa3.Visible = true;
+                mesa4.Visible = true;
+                ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBox1.SelectedItem.ToString());
+            }
+            else
+            {
+                pictureBoxReserva.Visible = false;
+                mesa1.Visible = false;
+                mesa2.Visible = false;
+                mesa3.Visible = false;
+                mesa4.Visible = false;
+            }
+        }
+
+        private void ComprobarDisponibilidadMesas(DateTime fecha, string tipo)
+        {
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            string query = "SELECT Mesa, IdUsuario FROM Reservas WHERE FechaReserva = ? AND Tipo = ?";
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        // Formatear la fecha en el formato "dd/MM/yyyy"
+                        string fechaFormateada = fecha.ToString("dd/MM/yyyy");
+
+                        command.Parameters.AddWithValue("@FechaReserva", fechaFormateada);
+                        command.Parameters.AddWithValue("@Tipo", tipo);
+
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            // Inicializar todas las mesas como disponibles (verde) y sin texto
+                            ResetMesas();
+
+                            // Marcar las mesas reservadas y actualizar el texto con el IdUsuario
+                            while (reader.Read())
+                            {
+                                string mesas = reader.GetString(0);
+                                int idUsuario = reader.GetInt32(1);
+                                string[] mesasArray = mesas.Split(',');
+
+                                foreach (string mesaStr in mesasArray)
+                                {
+                                    if (int.TryParse(mesaStr, out int mesa))
+                                    {
+                                        switch (mesa)
+                                        {
+                                            case 1:
+                                                mesa1.Text = idUsuario.ToString();
+                                                mesa1.BackColor = idUsuario == currentUserId ? Color.Orange : Color.Red;
+                                                break;
+                                            case 2:
+                                                mesa2.Text = idUsuario.ToString();
+                                                mesa2.BackColor = idUsuario == currentUserId ? Color.Orange : Color.Red;
+                                                break;
+                                            case 3:
+                                                mesa3.Text = idUsuario.ToString();
+                                                mesa3.BackColor = idUsuario == currentUserId ? Color.Orange : Color.Red;
+                                                break;
+                                            case 4:
+                                                mesa4.Text = idUsuario.ToString();
+                                                mesa4.BackColor = idUsuario == currentUserId ? Color.Orange : Color.Red;
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al comprobar la disponibilidad de las mesas: " + ex.Message);
+                }
+            }
+        }
+
+        private void ResetMesas()
+        {
+            mesa1.BackColor = Color.Green;
+            mesa1.Text = string.Empty;
+            mesa2.BackColor = Color.Green;
+            mesa2.Text = string.Empty;
+            mesa3.BackColor = Color.Green;
+            mesa3.Text = string.Empty;
+            mesa4.BackColor = Color.Green;
+            mesa4.Text = string.Empty;
+        }
+        private void Mesa_Click(object sender, EventArgs e)
+        {
+            System.Windows.Forms.Button mesa = sender as System.Windows.Forms.Button;
+            if (mesa != null)
+            {
+                CambiarColorMesa(mesa);
+            }
+        }
+        private void CambiarColorMesa(System.Windows.Forms.Button mesa)
+        {
+            if (mesa.BackColor == Color.Red)
+            {
+                // No hacer nada si la mesa está en rojo
+                return;
+            }
+            else if (mesa.BackColor == Color.Green)
+            {
+                // Cambiar a naranja si la mesa está en verde
+                mesa.BackColor = Color.Orange;
+                mesa.Text = currentUserId.ToString();
+            }
+            else if (mesa.BackColor == Color.Orange)
+            {
+                // Cambiar a verde si la mesa está en naranja
+                mesa.Text = "";
+                mesa.BackColor = Color.Green;
+            }
+        }
+
+        private void reservarBtn_Click(object sender, EventArgs e)
+        {
+            // Recoger las mesas en naranja
+            List<int> mesasNaranja = new List<int>();
+            if (mesa1.BackColor == Color.Orange) mesasNaranja.Add(1);
+            if (mesa2.BackColor == Color.Orange) mesasNaranja.Add(2);
+            if (mesa3.BackColor == Color.Orange) mesasNaranja.Add(3);
+            if (mesa4.BackColor == Color.Orange) mesasNaranja.Add(4);
+
+            // Verificar si hay mesas en naranja
+            if (mesasNaranja.Count == 0)
+            {
+                MessageBox.Show("No hay mesas seleccionadas para reservar.");
+                return;
+            }
+
+            // Formatear las mesas en una cadena separada por comas
+            string mesas = string.Join(",", mesasNaranja);
+
+            // Obtener la fecha y el tipo de reserva
+            DateTime fechaReserva = dateTimePicker.Value.Date;
+            string tipoReserva = comboBox1.SelectedItem.ToString();
+
+            // Cadena de conexión a la base de datos
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+
+                    // Verificar si ya existe una reserva para el usuario, la fecha y el tipo
+                    string checkQuery = "SELECT COUNT(*) FROM Reservas WHERE IdUsuario = ? AND FechaReserva = ? AND Tipo = ?";
+                    using (OleDbCommand checkCommand = new OleDbCommand(checkQuery, connection))
+                    {
+                        checkCommand.Parameters.AddWithValue("@IdUsuario", currentUserId);
+                        checkCommand.Parameters.AddWithValue("@FechaReserva", fechaReserva.ToString("dd/MM/yyyy"));
+                        checkCommand.Parameters.AddWithValue("@Tipo", tipoReserva);
+
+                        int count = (int)checkCommand.ExecuteScalar();
+
+                        if (count > 0)
+                        {
+                            // Si ya existe una reserva, actualizarla
+                            string updateQuery = "UPDATE Reservas SET Mesa = ? WHERE IdUsuario = ? AND FechaReserva = ? AND Tipo = ?";
+                            using (OleDbCommand updateCommand = new OleDbCommand(updateQuery, connection))
+                            {
+                                updateCommand.Parameters.AddWithValue("@Mesa", mesas);
+                                updateCommand.Parameters.AddWithValue("@IdUsuario", currentUserId);
+                                updateCommand.Parameters.AddWithValue("@FechaReserva", fechaReserva.ToString("dd/MM/yyyy"));
+                                updateCommand.Parameters.AddWithValue("@Tipo", tipoReserva);
+
+                                updateCommand.ExecuteNonQuery();
+                            }
+
+                            MessageBox.Show("Reserva actualizada con éxito.");
+                        }
+                        else
+                        {
+                            // Si no existe una reserva, insertar una nueva
+                            string insertQuery = "INSERT INTO Reservas (IdUsuario, FechaReserva, Tipo, Mesa) VALUES (?, ?, ?, ?)";
+                            using (OleDbCommand insertCommand = new OleDbCommand(insertQuery, connection))
+                            {
+                                insertCommand.Parameters.AddWithValue("@IdUsuario", currentUserId);
+                                insertCommand.Parameters.AddWithValue("@FechaReserva", fechaReserva.ToString("dd/MM/yyyy"));
+                                insertCommand.Parameters.AddWithValue("@Tipo", tipoReserva);
+                                insertCommand.Parameters.AddWithValue("@Mesa", mesas);
+
+                                insertCommand.ExecuteNonQuery();
+                            }
+
+                            MessageBox.Show("Reserva realizada con éxito.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al realizar la reserva: " + ex.Message);
+                }
+            }
+
+            ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBox1.SelectedItem.ToString());
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Obtener la fecha y el tipo de reserva
+            DateTime fechaReserva = dateTimePicker.Value.Date;
+            string tipoReserva = comboBox1.SelectedItem.ToString();
+
+            // Cadena de conexión a la base de datos
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+
+                    // Consulta SQL para eliminar la reserva
+                    string deleteQuery = "DELETE FROM Reservas WHERE IdUsuario = ? AND FechaReserva = ? AND Tipo = ?";
+                    using (OleDbCommand deleteCommand = new OleDbCommand(deleteQuery, connection))
+                    {
+                        deleteCommand.Parameters.AddWithValue("@IdUsuario", currentUserId);
+                        deleteCommand.Parameters.AddWithValue("@FechaReserva", fechaReserva.ToString("dd/MM/yyyy"));
+                        deleteCommand.Parameters.AddWithValue("@Tipo", tipoReserva);
+
+                        int rowsAffected = deleteCommand.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            MessageBox.Show("Reserva eliminada con éxito.");
+                        }
+                        else
+                        {
+                            MessageBox.Show("No se encontró ninguna reserva para eliminar.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al eliminar la reserva: " + ex.Message);
+                }
+            }
+
+            // Actualizar la disponibilidad de las mesas
+            ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBox1.SelectedItem.ToString());
+        }
     }
+
+
 }
   
 
