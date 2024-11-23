@@ -22,49 +22,40 @@ namespace Reto
         public Form2(int userId, string userType)
         {
             InitializeComponent();
+            //gestion Usuario
             currentUserId = userId;
             currentUserType = userType;
             ConfigureButtons(userType);
+            //gestion caja
             InitializeTPV();
             InitializeDataGridView();
-            // Inicializar columnas y estilo del DataGridView
-            InitializeDataGridViewAlmacen();
-            InitializeDataGridViewUsuarios();
-            // Cargar productos en el DataGridView del panelAlmacen
-            LoadProductsToDataGridViewAlmacen();
-            panelCaja.Visible = true;
-            panelReservas.Visible = false;
-            // Suscribirse al evento MouseClick
             listViewItems.MouseClick += ListViewItems_MouseClick;
-            panelAlmacen.Click += new EventHandler(panelAlmacen_Click);
-            panelUsuarios.Click += new EventHandler(panelUsuarios_Click);
-
-            dataGridViewAlmacen.CellClick += new DataGridViewCellEventHandler(DataGridViewAlmacen_CellClick);
-            dataGridViewUsuarios.CellClick += new DataGridViewCellEventHandler(DataGridViewUsuarios_CellClick);
-            // Configurar evento de clic
             listViewItems.Click += ListViewItems_Click;
-
-            // Configurar el ListView para usar el modo de dibujo propietario
             listViewItems.OwnerDraw = true;
             listViewItems.DrawItem += ListViewItems_DrawItem;
-            // Cargar categorías en el ComboBox de panelCaja
-            LoadCategoriesToComboBoxCategoriasDisponibles();
-            comboBoxCategoriasDisponibles.SelectedIndexChanged += ComboBoxCategoriasDisponibles_SelectedIndexChanged;
-
-            comboBoxCategoriasDisponibles.SelectedIndex = 0;
-
-            LoadUserTypesToComboBox();
-            // Establecer la fecha mínima del DateTimePicker a la fecha actual
+            //gestion reservas
             dateTimePicker.MinDate = DateTime.Today;
             dateTimePicker.ValueChanged += new EventHandler(DateTimePickerOrComboBox_Changed);
-            comboBox1.SelectedIndexChanged += new EventHandler(DateTimePickerOrComboBox_Changed);
-
-            comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
-            // Asignar el evento de clic a cada botón de mesa
+            comboBoxTipoReserva.SelectedIndexChanged += new EventHandler(DateTimePickerOrComboBox_Changed);
+            comboBoxTipoReserva.DropDownStyle = ComboBoxStyle.DropDownList;
             mesa1.Click += new EventHandler(Mesa_Click);
             mesa2.Click += new EventHandler(Mesa_Click);
             mesa3.Click += new EventHandler(Mesa_Click);
             mesa4.Click += new EventHandler(Mesa_Click);
+            //gestion Almacen
+            InitializeDataGridViewAlmacen();
+            LoadProductsToDataGridViewAlmacen();
+            panelAlmacen.Click += new EventHandler(panelAlmacen_Click);
+            dataGridViewAlmacen.CellClick += new DataGridViewCellEventHandler(DataGridViewAlmacen_CellClick);
+            LoadCategoriesToComboBoxCategoriasDisponibles();
+            comboBoxCategoriasDisponibles.SelectedIndexChanged += ComboBoxCategoriasDisponibles_SelectedIndexChanged;
+            comboBoxCategoriasDisponibles.SelectedIndex = 0;
+            //gestion Usuarios
+            InitializeDataGridViewUsuarios();
+            panelUsuarios.Click += new EventHandler(panelUsuarios_Click);
+            dataGridViewAlmacen.CellClick += new DataGridViewCellEventHandler(DataGridViewAlmacen_CellClick);
+            dataGridViewUsuarios.CellClick += new DataGridViewCellEventHandler(DataGridViewUsuarios_CellClick);
+            LoadUserTypesToComboBox();        
         }
 
 
@@ -1479,14 +1470,14 @@ namespace Reto
         private void DateTimePickerOrComboBox_Changed(object sender, EventArgs e)
         {
             // Verificar si ambos controles tienen una selección
-            if (dateTimePicker.Value.Date >= DateTime.Today && comboBox1.SelectedIndex != -1)
+            if (dateTimePicker.Value.Date >= DateTime.Today && comboBoxTipoReserva.SelectedIndex != -1)
             {
                 pictureBoxReserva.Visible = true;
                 mesa1.Visible = true;
                 mesa2.Visible = true;
                 mesa3.Visible = true;
                 mesa4.Visible = true;
-                ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBox1.SelectedItem.ToString());
+                ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBoxTipoReserva.SelectedItem.ToString());
             }
             else
             {
@@ -1617,6 +1608,7 @@ namespace Reto
             if (mesasNaranja.Count == 0)
             {
                 MessageBox.Show("No hay mesas seleccionadas para reservar.");
+                ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBoxTipoReserva.SelectedItem.ToString());
                 return;
             }
 
@@ -1625,7 +1617,7 @@ namespace Reto
 
             // Obtener la fecha y el tipo de reserva
             DateTime fechaReserva = dateTimePicker.Value.Date;
-            string tipoReserva = comboBox1.SelectedItem.ToString();
+            string tipoReserva = comboBoxTipoReserva.SelectedItem.ToString();
 
             // Cadena de conexión a la base de datos
             string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
@@ -1686,14 +1678,14 @@ namespace Reto
                 }
             }
 
-            ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBox1.SelectedItem.ToString());
+            ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBoxTipoReserva.SelectedItem.ToString());
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void buttonEliminarReserva_Click(object sender, EventArgs e)
         {
             // Obtener la fecha y el tipo de reserva
             DateTime fechaReserva = dateTimePicker.Value.Date;
-            string tipoReserva = comboBox1.SelectedItem.ToString();
+            string tipoReserva = comboBoxTipoReserva.SelectedItem.ToString();
 
             // Cadena de conexión a la base de datos
             string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
@@ -1731,7 +1723,7 @@ namespace Reto
             }
 
             // Actualizar la disponibilidad de las mesas
-            ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBox1.SelectedItem.ToString());
+            ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBoxTipoReserva.SelectedItem.ToString());
         }
     }
 

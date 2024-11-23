@@ -40,13 +40,14 @@
             this.label1 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panelReservas = new System.Windows.Forms.Panel();
+            this.button1 = new System.Windows.Forms.Button();
             this.reservarBtn = new System.Windows.Forms.Button();
             this.mesa5 = new System.Windows.Forms.Button();
             this.mesa4 = new System.Windows.Forms.Button();
             this.mesa3 = new System.Windows.Forms.Button();
             this.mesa2 = new System.Windows.Forms.Button();
             this.mesa1 = new System.Windows.Forms.Button();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.comboBoxTipoReserva = new System.Windows.Forms.ComboBox();
             this.dateTimePicker = new System.Windows.Forms.DateTimePicker();
             this.pictureBoxReserva = new System.Windows.Forms.PictureBox();
             this.panelCaja = new System.Windows.Forms.Panel();
@@ -97,7 +98,6 @@
             this.textBoxNombreU = new System.Windows.Forms.TextBox();
             this.dataGridViewUsuarios = new System.Windows.Forms.DataGridView();
             this.pictureBox4 = new System.Windows.Forms.PictureBox();
-            this.button1 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -234,13 +234,23 @@
             this.panelReservas.Controls.Add(this.mesa3);
             this.panelReservas.Controls.Add(this.mesa2);
             this.panelReservas.Controls.Add(this.mesa1);
-            this.panelReservas.Controls.Add(this.comboBox1);
+            this.panelReservas.Controls.Add(this.comboBoxTipoReserva);
             this.panelReservas.Controls.Add(this.dateTimePicker);
             this.panelReservas.Controls.Add(this.pictureBoxReserva);
             this.panelReservas.Location = new System.Drawing.Point(211, 0);
             this.panelReservas.Name = "panelReservas";
             this.panelReservas.Size = new System.Drawing.Size(796, 475);
             this.panelReservas.TabIndex = 1;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(18, 125);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(121, 23);
+            this.button1.TabIndex = 9;
+            this.button1.Text = "Cancelar Reserva";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.buttonEliminarReserva_Click);
             // 
             // reservarBtn
             // 
@@ -307,16 +317,16 @@
             this.mesa1.UseVisualStyleBackColor = false;
             this.mesa1.Visible = false;
             // 
-            // comboBox1
+            // comboBoxTipoReserva
             // 
-            this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Items.AddRange(new object[] {
+            this.comboBoxTipoReserva.FormattingEnabled = true;
+            this.comboBoxTipoReserva.Items.AddRange(new object[] {
             "COMIDA",
             "CENA"});
-            this.comboBox1.Location = new System.Drawing.Point(18, 45);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(121, 21);
-            this.comboBox1.TabIndex = 1;
+            this.comboBoxTipoReserva.Location = new System.Drawing.Point(18, 45);
+            this.comboBoxTipoReserva.Name = "comboBoxTipoReserva";
+            this.comboBoxTipoReserva.Size = new System.Drawing.Size(121, 21);
+            this.comboBoxTipoReserva.TabIndex = 1;
             // 
             // dateTimePicker
             // 
@@ -806,16 +816,6 @@
             this.pictureBox4.TabIndex = 9;
             this.pictureBox4.TabStop = false;
             // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(18, 125);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(121, 23);
-            this.button1.TabIndex = 9;
-            this.button1.Text = "Cancelar Reserva";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -823,8 +823,8 @@
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1011, 476);
             this.Controls.Add(this.panelCaja);
-            this.Controls.Add(this.panel1);
             this.Controls.Add(this.panelReservas);
+            this.Controls.Add(this.panel1);
             this.Controls.Add(this.panelUsuarios);
             this.Controls.Add(this.panelAlmacen);
             this.Name = "Form2";
@@ -916,7 +916,7 @@
         private System.Windows.Forms.PictureBox pictureBox4;
         private System.Windows.Forms.TextBox textBoxIdU;
         private System.Windows.Forms.DateTimePicker dateTimePicker;
-        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.ComboBox comboBoxTipoReserva;
         private System.Windows.Forms.PictureBox pictureBoxReserva;
         private System.Windows.Forms.Button mesa5;
         private System.Windows.Forms.Button mesa4;
