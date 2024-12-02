@@ -40,9 +40,9 @@
             this.label1 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panelReservas = new System.Windows.Forms.Panel();
+            this.mesa5 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.reservarBtn = new System.Windows.Forms.Button();
-            this.mesa5 = new System.Windows.Forms.Button();
             this.mesa4 = new System.Windows.Forms.Button();
             this.mesa3 = new System.Windows.Forms.Button();
             this.mesa2 = new System.Windows.Forms.Button();
@@ -242,6 +242,17 @@
             this.panelReservas.Size = new System.Drawing.Size(796, 475);
             this.panelReservas.TabIndex = 1;
             // 
+            // mesa5
+            // 
+            this.mesa5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.mesa5.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.mesa5.Location = new System.Drawing.Point(645, 218);
+            this.mesa5.Name = "mesa5";
+            this.mesa5.Size = new System.Drawing.Size(68, 65);
+            this.mesa5.TabIndex = 7;
+            this.mesa5.UseVisualStyleBackColor = false;
+            this.mesa5.Visible = false;
+            // 
             // button1
             // 
             this.button1.Location = new System.Drawing.Point(18, 125);
@@ -261,17 +272,6 @@
             this.reservarBtn.Text = "Reservar";
             this.reservarBtn.UseVisualStyleBackColor = true;
             this.reservarBtn.Click += new System.EventHandler(this.reservarBtn_Click);
-            // 
-            // mesa5
-            // 
-            this.mesa5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
-            this.mesa5.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.mesa5.Location = new System.Drawing.Point(645, 218);
-            this.mesa5.Name = "mesa5";
-            this.mesa5.Size = new System.Drawing.Size(68, 65);
-            this.mesa5.TabIndex = 7;
-            this.mesa5.UseVisualStyleBackColor = false;
-            this.mesa5.Visible = false;
             // 
             // mesa4
             // 
@@ -822,9 +822,9 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1011, 476);
-            this.Controls.Add(this.panelReservas);
             this.Controls.Add(this.panelCaja);
             this.Controls.Add(this.panel1);
+            this.Controls.Add(this.panelReservas);
             this.Controls.Add(this.panelUsuarios);
             this.Controls.Add(this.panelAlmacen);
             this.Name = "Form2";
