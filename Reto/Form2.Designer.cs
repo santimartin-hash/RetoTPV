@@ -227,9 +227,9 @@
             // panelReservas
             // 
             this.panelReservas.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.panelReservas.Controls.Add(this.mesa5);
             this.panelReservas.Controls.Add(this.button1);
             this.panelReservas.Controls.Add(this.reservarBtn);
-            this.panelReservas.Controls.Add(this.mesa5);
             this.panelReservas.Controls.Add(this.mesa4);
             this.panelReservas.Controls.Add(this.mesa3);
             this.panelReservas.Controls.Add(this.mesa2);
@@ -822,8 +822,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1011, 476);
-            this.Controls.Add(this.panelCaja);
             this.Controls.Add(this.panelReservas);
+            this.Controls.Add(this.panelCaja);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.panelUsuarios);
             this.Controls.Add(this.panelAlmacen);

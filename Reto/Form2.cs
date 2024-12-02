@@ -42,6 +42,7 @@ namespace Reto
             mesa2.Click += new EventHandler(Mesa_Click);
             mesa3.Click += new EventHandler(Mesa_Click);
             mesa4.Click += new EventHandler(Mesa_Click);
+            mesa5.Click += new EventHandler(Mesa_Click);
             //gestion Almacen
             InitializeDataGridViewAlmacen();
             LoadProductsToDataGridViewAlmacen();
@@ -249,7 +250,7 @@ namespace Reto
             ImageList imageList = new ImageList();
             imageList.ImageSize = new Size(64, 64);
 
-            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=RETODESIN.accdb;Persist Security Info=False;";
 
             string query = "SELECT NombreProducto, Precio, Descripcion, Categoria, [Imagen(URL)], Cantidad FROM Productos"; // Seleccionar columnas específicas
 
@@ -273,14 +274,14 @@ namespace Reto
 
                                 // Crear un diccionario para almacenar todos los datos del producto
                                 var productData = new Dictionary<string, string>
-                                {
-                                    { "NombreProducto", nombreProducto },
-                                    { "Precio", precio },
-                                    { "Descripcion", descripcion },
-                                    { "Categoria", categoria },
-                                    { "Imagen(URL)", imagenUrl },
-                                    { "Cantidad", cantidad }
-                                };
+                        {
+                            { "NombreProducto", nombreProducto },
+                            { "Precio", precio },
+                            { "Descripcion", descripcion },
+                            { "Categoria", categoria },
+                            { "Imagen(URL)", imagenUrl },
+                            { "Cantidad", cantidad }
+                        };
 
                                 // Descargar imagen y agregarla al ImageList
                                 Image image = DownloadImage(imagenUrl);
@@ -296,7 +297,6 @@ namespace Reto
                                 {
                                     item.ForeColor = Color.Gray;
                                     item.BackColor = Color.LightGray;
-
                                 }
 
                                 listViewItems.Items.Add(item);
@@ -312,8 +312,23 @@ namespace Reto
             // Configurar ListView para usar ImageList
             listViewItems.LargeImageList = imageList;
             listViewItems.View = View.LargeIcon;
-
         }
+
+        private Image DownloadImage(string url)
+        {
+            using (WebClient webClient = new WebClient())
+            {
+                // Agregar un encabezado de agente de usuario
+                webClient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
+
+                byte[] data = webClient.DownloadData(url);
+                using (var ms = new System.IO.MemoryStream(data))
+                {
+                    return Image.FromStream(ms);
+                }
+            }
+        }
+
         private void InitializeDataGridView()
         {
             // Configurar DataGridView
@@ -469,17 +484,7 @@ namespace Reto
             }
         }
 
-        private Image DownloadImage(string url)
-        {
-            using (WebClient webClient = new WebClient())
-            {
-                byte[] data = webClient.DownloadData(url);
-                using (var ms = new System.IO.MemoryStream(data))
-                {
-                    return Image.FromStream(ms);
-                }
-            }
-        }
+    
 
         private void AñadirProductoBtn_Click(object sender, EventArgs e)
         {
@@ -1477,6 +1482,7 @@ namespace Reto
                 mesa2.Visible = true;
                 mesa3.Visible = true;
                 mesa4.Visible = true;
+                mesa5.Visible = true;
                 ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBoxTipoReserva.SelectedItem.ToString());
             }
             else
@@ -1486,6 +1492,7 @@ namespace Reto
                 mesa2.Visible = false;
                 mesa3.Visible = false;
                 mesa4.Visible = false;
+                mesa5.Visible = false;
             }
         }
 
@@ -1501,11 +1508,9 @@ namespace Reto
                     connection.Open();
                     using (OleDbCommand command = new OleDbCommand(query, connection))
                     {
-                        // Formatear la fecha en el formato "dd/MM/yyyy"
-                        string fechaFormateada = fecha.ToString("dd/MM/yyyy");
-
-                        command.Parameters.AddWithValue("@FechaReserva", fechaFormateada);
-                        command.Parameters.AddWithValue("@Tipo", tipo);
+                        // Agregar los parámetros de manera explícita
+                        command.Parameters.Add(new OleDbParameter("@FechaReserva", OleDbType.Date)).Value = fecha;
+                        command.Parameters.Add(new OleDbParameter("@Tipo", OleDbType.VarChar)).Value = tipo;
 
                         using (OleDbDataReader reader = command.ExecuteReader())
                         {
@@ -1541,6 +1546,10 @@ namespace Reto
                                                 mesa4.Text = idUsuario.ToString();
                                                 mesa4.BackColor = idUsuario == currentUserId ? Color.Orange : Color.Red;
                                                 break;
+                                            case 5:
+                                                mesa5.Text = idUsuario.ToString();
+                                                mesa5.BackColor = idUsuario == currentUserId ? Color.Orange : Color.Red;
+                                                break;
                                         }
                                     }
                                 }
@@ -1555,6 +1564,9 @@ namespace Reto
             }
         }
 
+
+
+
         private void ResetMesas()
         {
             mesa1.BackColor = Color.Green;
@@ -1565,6 +1577,8 @@ namespace Reto
             mesa3.Text = string.Empty;
             mesa4.BackColor = Color.Green;
             mesa4.Text = string.Empty;
+            mesa5.BackColor = Color.Green;
+            mesa5.Text = string.Empty;
         }
         private void Mesa_Click(object sender, EventArgs e)
         {
@@ -1603,6 +1617,8 @@ namespace Reto
             if (mesa2.BackColor == Color.Orange) mesasNaranja.Add(2);
             if (mesa3.BackColor == Color.Orange) mesasNaranja.Add(3);
             if (mesa4.BackColor == Color.Orange) mesasNaranja.Add(4);
+            if (mesa5.BackColor == Color.Orange) mesasNaranja.Add(5);
+
 
             // Verificar si hay mesas en naranja
             if (mesasNaranja.Count == 0)
