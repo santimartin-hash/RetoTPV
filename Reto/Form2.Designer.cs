@@ -98,6 +98,7 @@
             this.textBoxNombreU = new System.Windows.Forms.TextBox();
             this.dataGridViewUsuarios = new System.Windows.Forms.DataGridView();
             this.pictureBox4 = new System.Windows.Forms.PictureBox();
+            this.GenerarInforme = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -520,6 +521,7 @@
             // panelAlmacen
             // 
             this.panelAlmacen.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.panelAlmacen.Controls.Add(this.GenerarInforme);
             this.panelAlmacen.Controls.Add(this.comboBoxCategoria);
             this.panelAlmacen.Controls.Add(this.textBoxIdProducto);
             this.panelAlmacen.Controls.Add(this.dataGridViewAlmacen);
@@ -816,17 +818,27 @@
             this.pictureBox4.TabIndex = 9;
             this.pictureBox4.TabStop = false;
             // 
+            // GenerarInforme
+            // 
+            this.GenerarInforme.Location = new System.Drawing.Point(31, 427);
+            this.GenerarInforme.Name = "GenerarInforme";
+            this.GenerarInforme.Size = new System.Drawing.Size(108, 23);
+            this.GenerarInforme.TabIndex = 23;
+            this.GenerarInforme.Text = "Generar informe";
+            this.GenerarInforme.UseVisualStyleBackColor = true;
+            this.GenerarInforme.Click += new System.EventHandler(this.GenerarInforme_Click);
+            // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1011, 476);
+            this.Controls.Add(this.panelAlmacen);
             this.Controls.Add(this.panelCaja);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.panelReservas);
             this.Controls.Add(this.panelUsuarios);
-            this.Controls.Add(this.panelAlmacen);
             this.Name = "Form2";
             this.Text = "SidraLovers";
             this.panel1.ResumeLayout(false);
@@ -925,5 +937,6 @@
         private System.Windows.Forms.Button mesa1;
         private System.Windows.Forms.Button reservarBtn;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button GenerarInforme;
     }
 }

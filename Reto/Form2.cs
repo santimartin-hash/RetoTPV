@@ -5,11 +5,14 @@ using System.Data;
 using System.Data.OleDb;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using iTextSharp.text.pdf;
+using iTextSharp.text;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Reto
@@ -56,11 +59,11 @@ namespace Reto
             panelUsuarios.Click += new EventHandler(panelUsuarios_Click);
             dataGridViewAlmacen.CellClick += new DataGridViewCellEventHandler(DataGridViewAlmacen_CellClick);
             dataGridViewUsuarios.CellClick += new DataGridViewCellEventHandler(DataGridViewUsuarios_CellClick);
-            LoadUserTypesToComboBox();        
+            LoadUserTypesToComboBox();
         }
 
 
-     
+
 
         private void LoadCategoriesToComboBoxCategoriasDisponibles()
         {
@@ -146,7 +149,7 @@ namespace Reto
                                 };
 
                                 // Descargar imagen y agregarla al ImageList
-                                Image image = DownloadImage(imagenUrl);
+                                System.Drawing.Image image = DownloadImage(imagenUrl);
                                 imageList.Images.Add(nombreProducto, image);
 
                                 // Crear un ListViewItem con el nombre del producto y asignar la imagen
@@ -284,7 +287,7 @@ namespace Reto
                         };
 
                                 // Descargar imagen y agregarla al ImageList
-                                Image image = DownloadImage(imagenUrl);
+                                System.Drawing.Image image = DownloadImage(imagenUrl);
                                 imageList.Images.Add(nombreProducto, image);
 
                                 // Crear un ListViewItem con el nombre del producto y asignar la imagen
@@ -314,7 +317,7 @@ namespace Reto
             listViewItems.View = View.LargeIcon;
         }
 
-        private Image DownloadImage(string url)
+        private System.Drawing.Image DownloadImage(string url)
         {
             using (WebClient webClient = new WebClient())
             {
@@ -324,7 +327,7 @@ namespace Reto
                 byte[] data = webClient.DownloadData(url);
                 using (var ms = new System.IO.MemoryStream(data))
                 {
-                    return Image.FromStream(ms);
+                    return System.Drawing.Image.FromStream(ms);
                 }
             }
         }
@@ -461,7 +464,7 @@ namespace Reto
             var image = listViewItems.LargeImageList?.Images[e.Item.ImageKey];
             if (image != null)
             {
-                e.Graphics.DrawImage(image, new Rectangle(imageX, imageY, imageWidth, imageHeight));
+                e.Graphics.DrawImage(image, new System.Drawing.Rectangle(imageX, imageY, imageWidth, imageHeight));
             }
 
             // Calcular la posición del texto más arriba
@@ -473,7 +476,7 @@ namespace Reto
             if (e.Item.Selected)
             {
                 int selectionPadding = 1; // Ajustar el tamaño del rectángulo de selección
-                Rectangle selectionRectangle = new Rectangle(
+                System.Drawing.Rectangle selectionRectangle = new System.Drawing.Rectangle(
                     e.Bounds.X,
                     e.Bounds.Y,
                     e.Bounds.Width - 2 * selectionPadding,
@@ -484,7 +487,7 @@ namespace Reto
             }
         }
 
-    
+
 
         private void AñadirProductoBtn_Click(object sender, EventArgs e)
         {
@@ -928,7 +931,7 @@ namespace Reto
                 // Carga la información del producto en los controles del panelAlmacen
                 // Supongamos que tienes TextBoxes para mostrar la información del producto
                 textBoxIdProducto.Text = row.Cells["Id"].Value.ToString();
-                imagenProducto.Image = (Image)row.Cells["Imagen"].Value;
+                imagenProducto.Image = (System.Drawing.Image)row.Cells["Imagen"].Value;
                 textBoxNombreProducto.Text = row.Cells["NombreProducto"].Value.ToString();
                 textBoxPrecioProducto.Text = row.Cells["Precio"].Value.ToString();
                 textBoxDescripcionProducto.Text = row.Cells["Descripcion"].Value.ToString();
@@ -960,7 +963,7 @@ namespace Reto
                             dataTable.Load(reader);
 
                             // Añadir columna de imagen al DataTable
-                            dataTable.Columns.Add("Imagen", typeof(Image));
+                            dataTable.Columns.Add("Imagen", typeof(System.Drawing.Image));
                             dataTable.Columns.Add("ImagenURL", typeof(string));
 
                             foreach (DataRow row in dataTable.Rows)
@@ -1168,7 +1171,7 @@ namespace Reto
                 }
 
             }
-          
+
             // Limpiar los campos después de la operación
             textBoxIdProducto.Text = "";
             imagenProducto.Image = null;
@@ -1348,7 +1351,7 @@ namespace Reto
                 MessageBox.Show("El tipo del usuario no puede estar vacío.");
                 return;
             }
-      
+
 
             using (OleDbConnection connection = new OleDbConnection(connectionString))
             {
@@ -1389,7 +1392,7 @@ namespace Reto
                     MessageBox.Show("Error al guardar el usuario: " + ex.Message);
                 }
                 actualizarDataGridUsuarios();
-               
+
                 // Limpiar los campos después de la operación
                 textBoxIdU.Text = "";
                 textBoxContraseñaU.Text = "";
@@ -1741,11 +1744,82 @@ namespace Reto
             // Actualizar la disponibilidad de las mesas
             ComprobarDisponibilidadMesas(dateTimePicker.Value.Date, comboBoxTipoReserva.SelectedItem.ToString());
         }
+
+        private void GenerarInforme_Click(object sender, EventArgs e)
+        {
+            string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=..\..\RETODESIN.accdb;Persist Security Info=False;";
+            string query = "SELECT * FROM Productos"; // Seleccionar todos los datos de la tabla Productos
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            // Crear un documento PDF con orientación horizontal
+                            Document document = new Document(PageSize.A4.Rotate());
+                            PdfWriter.GetInstance(document, new FileStream("InformeProductos.pdf", FileMode.Create));
+                            document.Open();
+
+                            // Agregar título al documento
+                            document.Add(new Paragraph("Informe de Productos", FontFactory.GetFont(FontFactory.COURIER_BOLD, 16)));
+                            document.Add(new Paragraph(" ", FontFactory.GetFont(FontFactory.COURIER, 12))); // Espacio en blanco
+
+                            // Agregar encabezados de columna
+                            document.Add(new Paragraph("ID".PadRight(10) + "Nombre".PadRight(30) + "Precio".PadRight(10) + "Descripción".PadRight(30) + "Categoría".PadRight(15) + "Cantidad".PadRight(15), FontFactory.GetFont(FontFactory.COURIER_BOLD, 12)));
+                            document.Add(new Paragraph(new string('-', 106), FontFactory.GetFont(FontFactory.COURIER, 12))); // Línea separadora
+
+                            // Agregar datos de la base de datos al documento
+                            while (reader.Read())
+                            {
+                                string id = reader["Id"].ToString().PadRight(10);
+                                string nombre = reader["NombreProducto"].ToString().PadRight(30);
+                                string precio = (reader["Precio"].ToString() + " €").PadRight(10);
+                                string descripcion = reader["Descripcion"].ToString().PadRight(30);
+                                string categoria = reader["Categoria"].ToString().PadRight(20);
+                                string cantidad = reader["Cantidad"].ToString();
+                                int minStock = int.Parse(reader["min_stock"].ToString());
+
+                                // Crear un Chunk para la cantidad con el color adecuado
+                                BaseColor colorCantidad = int.Parse(cantidad) < minStock ? BaseColor.RED : BaseColor.GREEN;
+                                Chunk cantidadChunk = new Chunk(cantidad.PadRight(10), FontFactory.GetFont(FontFactory.COURIER, 12, colorCantidad));
+
+                                // Crear una frase que contenga todos los datos
+                                Paragraph line = new Paragraph();
+                                line.Add(new Chunk(id, FontFactory.GetFont(FontFactory.COURIER, 12)));
+                                line.Add(new Chunk(nombre, FontFactory.GetFont(FontFactory.COURIER, 12)));
+                                line.Add(new Chunk(precio, FontFactory.GetFont(FontFactory.COURIER, 12)));
+                                line.Add(new Chunk(descripcion, FontFactory.GetFont(FontFactory.COURIER, 12)));
+                                line.Add(new Chunk(categoria, FontFactory.GetFont(FontFactory.COURIER, 12)));
+                                line.Add(cantidadChunk);
+
+                                // Agregar la frase al documento
+                                document.Add(line);
+                            }
+
+                            document.Close();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al generar el informe: " + ex.Message);
+                }
+            }
+
+            MessageBox.Show("Informe generado correctamente en InformeProductos.pdf");
+        }
+
+
+
     }
 
-
 }
-  
+
+
 
 
 
